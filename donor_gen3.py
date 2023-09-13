@@ -18,11 +18,6 @@ import re
 odd_backbone = 'backbone_psl1139.gb'
 even_backbone = 'psl1213-psl1194-kanr-apmr.gb'
 
-
-
-
-
-
 def donor_gen (odd_backbone,even_backbone, insert_file,output_folder) :
     insert_object = SeqIO.read(insert_file, 'gb')
            
@@ -45,8 +40,6 @@ def donor_gen (odd_backbone,even_backbone, insert_file,output_folder) :
                     
                     odd_backbone_object = SeqIO.read(odd_backbone, 'gb')
                     
-                        
-            
                     #Finding the AscI & NotI location
                 
                     NotI= "GCGGCCGC"
@@ -113,9 +106,7 @@ def donor_gen (odd_backbone,even_backbone, insert_file,output_folder) :
                      # Save the donor sequence as a GenBank file
                      SeqIO.write(donor_seq_features, gbk_file_name, "genbank")
               
-                    
-                    
-                    
+                                        
           
 #donor_gen(backbone_file, odd_backbone,even_backbone, insert_file,output_folder)
 
