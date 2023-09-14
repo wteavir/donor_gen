@@ -18,6 +18,10 @@ import re
 odd_backbone = 'backbone_psl1139.gb'
 even_backbone = 'psl1213-psl1194-kanr-apmr.gb'
 
+NotI= "GCGGCCGC"
+AscI= "GGCGCGCC"
+Hx= "CGAGGGCTAGAATTACCTACCGGCCTCCACCATGCCTGCG"
+
 def donor_gen (odd_backbone,even_backbone, insert_file,output_folder) :
     insert_object = SeqIO.read(insert_file, 'gb')
            
@@ -32,85 +36,38 @@ def donor_gen (odd_backbone,even_backbone, insert_file,output_folder) :
             match = re.search(r"fragment#?(\d+)",cleaned_label)
             if match:
                 number = int(match.group(1))
-                if number %2 != 0:
-                    
-            
-                    insert_seq = feature.extract(insert_object)
-                    #print(insert_seq)
-                    
-                    odd_backbone_object = SeqIO.read(odd_backbone, 'gb')
-                    
-                    #Finding the AscI & NotI location
-                
-                    NotI= "GCGGCCGC"
-                    AscI= "GGCGCGCC"
-                    Hx= "CGAGGGCTAGAATTACCTACCGGCCTCCACCATGCCTGCG"
-                    NotI_position = odd_backbone_object.seq.find(NotI)
-                    AscI_position = odd_backbone_object.seq.find(AscI)
-                    
-                    #removing Hx sequence 
-                    Hx_position = odd_backbone_object.seq.find(Hx)
-                    Hx_Start_End = [Hx_position,Hx_position+40]
-                    
-                    sequence_from_NotI = odd_backbone_object[NotI_position:]
-                    AscI_NotI = [AscI_position + 8,NotI_position -1]
-                    sequence_up_to_AscI = odd_backbone_object[:AscI_NotI[0]]
-                    
-                    
-                    sequence_before_Hx = odd_backbone_object[:Hx_Start_End[0]]
-                    donor_seq_features = sequence_before_Hx + AscI + insert_seq + sequence_from_NotI
-                    
-                    #Generating GBK file for combined sequence
-                    gbk_file_name = f"{output_folder}/odd_donor_{label}.gbk"
-                    donor_seq_features.annotations["molecule_type"] = "DNA"              
-                    # Save the donor sequence as a GenBank file
-                    SeqIO.write(donor_seq_features, gbk_file_name, "genbank")
-                    
-                    if cleaned_label == "fragment#1":
-                        donor_seq_features = sequence_up_to_AscI + insert_seq + sequence_from_NotI
-                        donor_seq_features.annotations["molecule_type"] = "DNA"  
-                        SeqIO.write(donor_seq_features, gbk_file_name, "genbank")
-                        
-                    
+
                 if number % 2 == 0:
-                     
-             
-                     insert_seq = feature.extract(insert_object)
-                     #print(insert_seq)
-                     
-                     even_backbone_object = SeqIO.read(even_backbone, 'gb')
-                     
-                     
-             
-                     #Finding the AscI & NotI location
-                 
-                     NotI= "GCGGCCGC"
-                     AscI= "GGCGCGCC"
-                     NotI_position = even_backbone_object.seq.find(NotI)
-                     AscI_position = even_backbone_object.seq.find(AscI)
-                     AscI_NotI = [AscI_position + 8,NotI_position -1]
-                     
-                     #Combining Sequence to AscI + Insert + Sequence from NotI 
-                     sequence_up_to_AscI = even_backbone_object[:AscI_NotI[0]]
-                     
-                     sequence_from_NotI = even_backbone_object[NotI_position:]
-                     donor_seq_features = sequence_up_to_AscI + insert_seq + sequence_from_NotI
-                     donor_seq_features.annotations["molecule_type"] = "DNA"
-                     
-                     
-                     
-                     
-                     #Generating GBK file for combined sequence
-                     gbk_file_name = f"{output_folder}/even_donor_{label}.gbk"
-                                   
-                     # Save the donor sequence as a GenBank file
-                     SeqIO.write(donor_seq_features, gbk_file_name, "genbank")
-              
-                                        
-          
-#donor_gen(backbone_file, odd_backbone,even_backbone, insert_file,output_folder)
+                    backbone_object = SeqIO.read(even_backbone, 'gb')
+                    gbk_file_name = f"{output_folder}/even_donor_{label}.gbk"
 
+                else:
+                    backbone_object = SeqIO.read(odd_backbone , 'gb')
+                    gbk_file_name = f"{output_folder}/odd_donor_{label}.gbk"
+                     
+                insert_seq = feature.extract(insert_object)
+                #print(insert_seq)
+                
+                #Finding the AscI & NotI location
+                NotI_position = backbone_object.seq.find(NotI)
+                AscI_position = backbone_object.seq.find(AscI)
+                sequence_from_NotI = backbone_object[NotI_position:]
+                sequence_up_to_AscI = backbone_object[:AscI_position + 8]
 
+                if number % 2 != 0 and cleaned_label == "fragment#1":
+                    #removing Hx sequence 
+                    Hx_position = backbone_object.seq.find(Hx)
+                    sequence_before_Hx = backbone_object[:Hx_position]
+
+                    donor_seq_features = (sequence_before_Hx + AscI + 
+                                insert_seq + sequence_from_NotI)
+
+                donor_seq_features = sequence_up_to_AscI + insert_seq + sequence_from_NotI
+
+                donor_seq_features.annotations["molecule_type"] = "DNA"  
+                # Save the donor sequence as a GenBank file
+                SeqIO.write(donor_seq_features, gbk_file_name, "genbank")
+                        
 
 if __name__ == '__main__':
     parser= argparse.ArgumentParser(description='Makes Donor sequence + features for every fragment')
